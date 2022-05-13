@@ -1,0 +1,177 @@
+---
+openapi: 3.0.3
+info:
+  title: Retrypay API
+  version: 1.0.0
+servers:
+- url: http://marketplace.retrypay.dev/api
+paths:
+  /checkout/orders/alone:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ""
+      security:
+      - APIKey: []
+    parameters:
+    - name: x-tenant
+      description: Nombre del marketplace donde existe el merchant
+      schema:
+        type: string
+      in: header
+      required: true
+components:
+  schemas:
+    StatusType:
+      title: Estatus
+      enum:
+      - enable
+      - disabled
+      type: string
+    Product:
+      nullable: false
+      title: Producto
+      required:
+      - description
+      - amount
+      - price
+      type: object
+      properties:
+        description:
+          title: Descripción
+          maxLength: 60
+          minLength: 3
+          type: string
+        amount:
+          format: float
+          title: Cantidad
+          minimum: 1
+          type: number
+        taxes:
+          format: float
+          title: Impuestos
+          minimum: 0
+          type: number
+        price:
+          format: float
+          title: Precio
+          minimum: 1
+          type: number
+    CustomerAddress:
+      nullable: false
+      required:
+      - firstName
+      - lastName
+      - email
+      - phone
+      type: object
+      properties:
+        firstName:
+          maxLength: 100
+          minLength: 3
+          type: string
+        lastName:
+          maxLength: 100
+          minLength: 3
+          type: string
+        email:
+          maxLength: 100
+          minLength: 3
+          type: string
+        phone:
+          maxLength: 10
+          minLength: 10
+          pattern: "\\d{10}"
+          type: string
+          example: "1234567890"
+        zip:
+          description: Requerido si se usa Espiral
+          type: string
+        address:
+          description: Requerido si se usa Espiral
+          type: string
+        address2:
+          description: Requerido si se usa Espiral
+          type: string
+        country:
+          description: Requerido si se usa Espiral
+          type: string
+        state:
+          description: Requerido si se usa Espiral
+          type: string
+        town:
+          description: Requerido si se usa Espiral
+          type: string
+    Order:
+      nullable: false
+      required:
+      - api_key
+      - merchant_referece_id
+      - currency
+      - amount
+      type: object
+      properties:
+        api_key:
+          description: Valor que se obtiene desde la cuenta en Retrypay
+          type: string
+        merchant_referece_id:
+          description: Variable para uso del merchant
+          type: string
+        paymentPlan:
+          format: int32
+          description: "En caso de aplicar, los números de meses que se quiere dividir\
+            \ el cobro"
+          default: 1
+          type: integer
+        currency:
+          description: Cadena ISO-4217
+          maxLength: 3
+          minLength: 3
+          type: string
+        amount:
+          format: float
+          description: Monto total a cobrar
+          type: number
+        discount:
+          format: float
+          description: Descuento aplicado
+          default: 0
+          type: number
+        taxes:
+          format: float
+          description: Impuestos totales de la orden
+          default: 0
+          type: number
+        description:
+          default: No customer description
+          type: string
+        billingAddress:
+          $ref: '#/components/schemas/CustomerAddress'
+        shippingAddress:
+          $ref: '#/components/schemas/CustomerAddress'
+        products:
+          nullable: false
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+        save_card:
+          $ref: '#/components/schemas/StatusType'
+        subscriptions:
+          $ref: '#/components/schemas/StatusType'
+  securitySchemes:
+    APIKey:
+      type: apiKey
+      description: Única por merchant
+      name: api_key
+      in: query
+security:
+- APIKey: []
